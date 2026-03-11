@@ -41,18 +41,20 @@ def preprocess_input(form_data):
     Preprocess raw form data into a DataFrame suitable for the model.
     """
     # Mapping
-    gender_mapped = 1 if form_data['gender'] == "Male" else 0
-    cholesterol_mapped = int(form_data['cholesterol'])
-    gluc_mapped = int(form_data['gluc'])
+    gender_mapped = 1 if form_data.get('gender') in ["Male", "male", 1] else 0
+    cholesterol_mapped = int(form_data.get('cholesterol', 1))
+    gluc_mapped = int(form_data.get('gluc', 1))
     
-    age = int(form_data['age'])
-    height = float(form_data['height'])
-    weight = float(form_data['weight'])
-    systolic_bp = int(form_data['systolic_bp'])
-    diastolic_bp = int(form_data['diastolic_bp'])
-    smoke = 1 if form_data.get('smoke') == "on" else 0
-    alco = 1 if form_data.get('alco') == "on" else 0
-    active = 1 if form_data.get('active') == "on" else 0
+    age = int(form_data.get('age', 40))
+    height = float(form_data.get('height', 170))
+    weight = float(form_data.get('weight', 70))
+    systolic_bp = int(form_data.get('systolic_bp', 120))
+    diastolic_bp = int(form_data.get('diastolic_bp', 80))
+    
+    # Handle both HTML 'on' and JSON true/false
+    smoke = 1 if form_data.get('smoke') in [True, "true", "on", 1] else 0
+    alco = 1 if form_data.get('alco') in [True, "true", "on", 1] else 0
+    active = 1 if form_data.get('active') in [True, "true", "on", 1] else 0
     
     # Feature Engineering
     bmi = weight / ((height / 100) ** 2)
@@ -96,8 +98,13 @@ def predict():
         return jsonify({'error': 'Model or scaler not loaded. Contact administrator.'}), 500
     
     try:
-        # Preprocess input from POST request
-        processed_data = preprocess_input(request.form)
+        # Preprocess input from POST request (Support both JSON and HTML Forms)
+        if request.is_json:
+            input_data = request.get_json()
+        else:
+            input_data = request.form
+            
+        processed_data = preprocess_input(input_data)
         
         # Predict
         prediction = int(model.predict(processed_data)[0])
@@ -112,4 +119,5 @@ def predict():
         return jsonify({'error': str(e), 'status': 'failed'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
