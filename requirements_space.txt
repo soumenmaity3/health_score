@@ -1,0 +1,8 @@
+# Extremely minimal requirements for HF Spaces
+# We specify NumPy 2 to match your training environment
+numpy>=2.0
+scikit-learn
+huggingface-hub
+flask
+flask-cors
+joblib

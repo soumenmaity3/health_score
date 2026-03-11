@@ -1,0 +1,9 @@
+pandas
+scikit-learn
+ipykernel
+joblib
+streamlit
+kaggle
+huggingface-hub
+flask
+flask-cors
